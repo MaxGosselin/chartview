@@ -42,26 +42,37 @@ class CandleStickChartWithMA extends React.Component {
       .accessor((d) => d.ema20) // Required, if not provided, log an error during calculation
       .stroke("blue"); // Optional
 
+    const sma10 = sma()
+      .options({ windowSize: 10 })
+      .merge((d, c) => {
+        d.sma10 = c;
+      })
+      .accessor((d) => d.sma10)
+      .stroke("magenta");
+
     const sma20 = sma()
       .options({ windowSize: 20 })
       .merge((d, c) => {
         d.sma20 = c;
       })
-      .accessor((d) => d.sma20);
+      .accessor((d) => d.sma20)
+      .stroke("yellow");
 
-    const wma20 = wma()
-      .options({ windowSize: 20 })
+    const sma100 = sma()
+      .options({ windowSize: 100 })
       .merge((d, c) => {
-        d.wma20 = c;
+        d.sma100 = c;
       })
-      .accessor((d) => d.wma20);
+      .accessor((d) => d.sma100)
+      .stroke("#0154d4");
 
-    const tma20 = tma()
-      .options({ windowSize: 20 })
+    const sma200 = ema()
+      .options({ windowSize: 200 })
       .merge((d, c) => {
-        d.tma20 = c;
+        d.sma200 = c;
       })
-      .accessor((d) => d.tma20);
+      .accessor((d) => d.sma200)
+      .stroke("white");
 
     const ema50 = ema()
       .options({ windowSize: 50 })
@@ -79,6 +90,14 @@ class CandleStickChartWithMA extends React.Component {
       .stroke("#4682B4")
       .fill("#4682B4");
 
+    const vwap = sma()
+      .options({ windowSize: 1, sourcePath: "vwap" })
+      .merge((d, c) => {
+        d.vwap = c;
+      })
+      .accessor((d) => d.vwap)
+      .stroke("orange");
+
     console.log(this.props);
     const {
       type,
@@ -90,7 +109,7 @@ class CandleStickChartWithMA extends React.Component {
     } = this.props;
 
     const calculatedData = ema20(
-      sma20(wma20(tma20(ema50(smaVolume50(initialData)))))
+      sma10(sma20(sma100(sma200(ema50(smaVolume50(vwap(initialData)))))))
     );
     const xScaleProvider = discontinuousTimeScaleProvider.inputDateAccessor(
       (d) => d.date
@@ -120,16 +139,23 @@ class CandleStickChartWithMA extends React.Component {
           id={1}
           yExtents={[
             (d) => [d.high, d.low],
+            sma10.accessor(),
             sma20.accessor(),
-            wma20.accessor(),
-            tma20.accessor(),
+            sma100.accessor(),
+            sma200.accessor(),
             ema20.accessor(),
             ema50.accessor(),
+            vwap.accessor(),
           ]}
           padding={{ top: 10, bottom: 20 }}
         >
-          <XAxis axisAt="bottom" orient="bottom" />
-          <YAxis axisAt="right" orient="right" ticks={5} />
+          <XAxis axisAt="bottom" orient="bottom" tickStroke="#FFFFFF" />
+          <YAxis
+            axisAt="right"
+            orient="right"
+            tickStroke="#FFFFFF"
+            ticks={10}
+          />
 
           <MouseCoordinateY
             at="right"
@@ -137,71 +163,102 @@ class CandleStickChartWithMA extends React.Component {
             displayFormat={format(".2f")}
           />
 
-          <CandlestickSeries />
+          <CandlestickSeries
+            stroke={(d) => (d.close > d.open ? "#d40201" : "#2cc900")}
+            fill={(d) => (d.close > d.open ? "#d40201" : "#2cc900")}
+            wickStroke={(d) => (d.close > d.open ? "#d40201" : "#2cc900")}
+          />
+          <LineSeries yAccessor={sma10.accessor()} stroke={sma10.stroke()} />
           <LineSeries yAccessor={sma20.accessor()} stroke={sma20.stroke()} />
-          <LineSeries yAccessor={wma20.accessor()} stroke={wma20.stroke()} />
-          <LineSeries yAccessor={tma20.accessor()} stroke={tma20.stroke()} />
-          <LineSeries yAccessor={ema20.accessor()} stroke={ema20.stroke()} />
-          <LineSeries yAccessor={ema50.accessor()} stroke={ema50.stroke()} />
+          <LineSeries yAccessor={sma100.accessor()} stroke={sma100.stroke()} />
+          <LineSeries yAccessor={sma200.accessor()} stroke={sma200.stroke()} />
+          {/* <LineSeries yAccessor={ema20.accessor()} stroke={ema20.stroke()} />
+          <LineSeries yAccessor={ema50.accessor()} stroke={ema50.stroke()} /> */}
+          <LineSeries yAccessor={vwap.accessor()} stroke={vwap.stroke()} />
+          <CurrentCoordinate
+            yAccessor={sma10.accessor()}
+            fill={sma10.stroke()}
+          />
           <CurrentCoordinate
             yAccessor={sma20.accessor()}
             fill={sma20.stroke()}
           />
           <CurrentCoordinate
-            yAccessor={wma20.accessor()}
-            fill={wma20.stroke()}
+            yAccessor={sma100.accessor()}
+            fill={sma100.stroke()}
           />
           <CurrentCoordinate
-            yAccessor={tma20.accessor()}
-            fill={tma20.stroke()}
+            yAccessor={sma200.accessor()}
+            fill={sma200.stroke()}
           />
-          <CurrentCoordinate
+          {/* <CurrentCoordinate
             yAccessor={ema20.accessor()}
             fill={ema20.stroke()}
           />
           <CurrentCoordinate
             yAccessor={ema50.accessor()}
             fill={ema50.stroke()}
+          /> */}
+          <CurrentCoordinate yAccessor={vwap.accessor()} fill={vwap.stroke()} />
+          <OHLCTooltip
+            origin={[-40, 0]}
+            textFill={"#ffffff"}
+            labelFill={"#01d3d4"}
           />
-
-          <OHLCTooltip origin={[-40, 0]} />
           <MovingAverageTooltip
+            textFill={"#ffffff"}
+            labelFill={"#01d3d4"}
+            // fontSize={14}
             onClick={(e) => console.log(e)}
             origin={[-38, 15]}
             options={[
               {
+                yAccessor: sma10.accessor(),
+                type: "MA",
+                stroke: sma10.stroke(),
+                windowSize: sma10.options().windowSize,
+                echo: "some echo here",
+              },
+              {
                 yAccessor: sma20.accessor(),
-                type: "SMA",
+                type: "MA",
                 stroke: sma20.stroke(),
                 windowSize: sma20.options().windowSize,
                 echo: "some echo here",
               },
               {
-                yAccessor: wma20.accessor(),
-                type: "WMA",
-                stroke: wma20.stroke(),
-                windowSize: wma20.options().windowSize,
+                yAccessor: sma100.accessor(),
+                type: "MA",
+                stroke: sma100.stroke(),
+                windowSize: sma100.options().windowSize,
                 echo: "some echo here",
               },
               {
-                yAccessor: tma20.accessor(),
-                type: "TMA",
-                stroke: tma20.stroke(),
-                windowSize: tma20.options().windowSize,
+                yAccessor: sma200.accessor(),
+                type: "MA",
+                stroke: sma200.stroke(),
+                windowSize: sma200.options().windowSize,
                 echo: "some echo here",
               },
+              // {
+              //   yAccessor: ema20.accessor(),
+              //   type: "EMA",
+              //   stroke: ema20.stroke(),
+              //   windowSize: ema20.options().windowSize,
+              //   echo: "some echo here",
+              // },
+              // {
+              //   yAccessor: ema50.accessor(),
+              //   type: "EMA",
+              //   stroke: ema50.stroke(),
+              //   windowSize: ema50.options().windowSize,
+              //   echo: "some echo here",
+              // },
               {
-                yAccessor: ema20.accessor(),
-                type: "EMA",
-                stroke: ema20.stroke(),
-                windowSize: ema20.options().windowSize,
-                echo: "some echo here",
-              },
-              {
-                yAccessor: ema50.accessor(),
-                type: "EMA",
-                stroke: ema50.stroke(),
-                windowSize: ema50.options().windowSize,
+                yAccessor: vwap.accessor(),
+                type: "VWAP",
+                stroke: vwap.stroke(),
+                windowSize: vwap.options().windowSize,
                 echo: "some echo here",
               },
             ]}
@@ -233,9 +290,10 @@ class CandleStickChartWithMA extends React.Component {
 
           <BarSeries
             yAccessor={(d) => d.volume}
-            fill={(d) => (d.close > d.open ? "#6BA583" : "red")}
+            stroke={(d) => (d.close > d.open ? "#d40201" : "#2cc900")}
+            fill={(d) => (d.close > d.open ? "#d40201" : "#2cc900")}
           />
-          {/* <AreaSeries
+          <AreaSeries
             yAccessor={smaVolume50.accessor()}
             stroke={smaVolume50.stroke()}
             fill={smaVolume50.fill()}
@@ -243,10 +301,10 @@ class CandleStickChartWithMA extends React.Component {
           <CurrentCoordinate
             yAccessor={smaVolume50.accessor()}
             fill={smaVolume50.stroke()}
-          /> */}
+          />
           <CurrentCoordinate yAccessor={(d) => d.volume} fill="#9B0A47" />
         </Chart>
-        <CrossHairCursor />
+        <CrossHairCursor stroke="#FFFFFF" />
       </ChartCanvas>
     );
   }

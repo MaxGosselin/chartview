@@ -8,6 +8,7 @@ app = Flask(__name__)
 poly_client = RESTClient(API_KEY)
 
 RESOLUTIONS = {
+    "1m": (1, "minute"),
     "5m": (5, "minute"),
     "15m": (15, "minute"),
     "30m": (30, "minute"),
