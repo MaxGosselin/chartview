@@ -1,0 +1,33 @@
+.cf__cont {
+    /* flex-direction: row; */
+    min-width: 100vw;
+    /* border : 1px solid red; */
+    padding: 1vh;
+    padding-top: 0.5vh;
+}
+
+.cf__controls {
+    
+    /* flex-direction: row; */
+    align-items: center;
+    padding-top: 1vh;
+}
+
+.cf__control {
+    float: left;
+    margin-left: 0.5vw;
+}
+
+.cf__label {
+    margin-left: 0.5vw;
+}
+
+.cf__input {
+    margin-left: 0.5vw;
+}
+
+.cf__submit {
+    margin-left: 1vw;
+    margin-top: 0.5vh;
+    /* min-height: calc(12px + 1vmin); */
+}
