@@ -24,7 +24,7 @@ import {
   OHLCTooltip,
   MovingAverageTooltip,
 } from "react-stockcharts/lib/tooltip";
-import { ema, wma, sma, tma } from "react-stockcharts/lib/indicator";
+import { ema, sma, atr } from "react-stockcharts/lib/indicator";
 import { fitDimensions } from "react-stockcharts/lib/helper";
 import { last } from "react-stockcharts/lib/utils";
 
@@ -105,6 +105,13 @@ class CandleStickChartWithMA extends React.Component {
       })
       .accessor((d) => d.bpct);
 
+    const atr14 = atr()
+      .options({ windowSize: 14 })
+      .merge((d, c) => {
+        d.atr14 = c;
+      })
+      .accessor((d) => d.atr14);
+
     console.log(this.props);
     const {
       type,
@@ -116,7 +123,11 @@ class CandleStickChartWithMA extends React.Component {
     } = this.props;
 
     const calculatedData = ema20(
-      sma10(sma20(sma100(sma200(ema50(smaVolume50(vwap(bpct(initialData))))))))
+      sma10(
+        sma20(
+          sma100(sma200(ema50(smaVolume50(vwap(bpct(atr14(initialData)))))))
+        )
+      )
     );
     const xScaleProvider = discontinuousTimeScaleProvider.inputDateAccessor(
       (d) => d.date
@@ -268,6 +279,13 @@ class CandleStickChartWithMA extends React.Component {
                 type: "VWAP",
                 stroke: vwap.stroke(),
                 windowSize: vwap.options().windowSize,
+                echo: "some echo here",
+              },
+              {
+                yAccessor: atr14.accessor(),
+                type: "ATR",
+                stroke: atr14.stroke(),
+                windowSize: atr14.options().windowSize,
                 echo: "some echo here",
               },
               {
