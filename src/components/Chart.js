@@ -98,6 +98,13 @@ class CandleStickChartWithMA extends React.Component {
       .accessor((d) => d.vwap)
       .stroke("orange");
 
+    const bpct = sma()
+      .options({ windowSize: 1, sourcePath: "bar_range" })
+      .merge((d, c) => {
+        d.bpct = c;
+      })
+      .accessor((d) => d.bpct);
+
     console.log(this.props);
     const {
       type,
@@ -109,7 +116,7 @@ class CandleStickChartWithMA extends React.Component {
     } = this.props;
 
     const calculatedData = ema20(
-      sma10(sma20(sma100(sma200(ema50(smaVolume50(vwap(initialData)))))))
+      sma10(sma20(sma100(sma200(ema50(smaVolume50(vwap(bpct(initialData))))))))
     );
     const xScaleProvider = discontinuousTimeScaleProvider.inputDateAccessor(
       (d) => d.date
@@ -146,6 +153,7 @@ class CandleStickChartWithMA extends React.Component {
             ema20.accessor(),
             ema50.accessor(),
             vwap.accessor(),
+            // bpct.accessor(),
           ]}
           padding={{ top: 10, bottom: 20 }}
         >
@@ -243,6 +251,7 @@ class CandleStickChartWithMA extends React.Component {
               // {
               //   yAccessor: ema20.accessor(),
               //   type: "EMA",
+
               //   stroke: ema20.stroke(),
               //   windowSize: ema20.options().windowSize,
               //   echo: "some echo here",
@@ -259,6 +268,13 @@ class CandleStickChartWithMA extends React.Component {
                 type: "VWAP",
                 stroke: vwap.stroke(),
                 windowSize: vwap.options().windowSize,
+                echo: "some echo here",
+              },
+              {
+                yAccessor: bpct.accessor(),
+                type: "BAR",
+                stroke: bpct.stroke(),
+                windowSize: "%",
                 echo: "some echo here",
               },
             ]}

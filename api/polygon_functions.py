@@ -91,6 +91,7 @@ def get_bars(api_client, ticker, multiplier, timespan, from_, to):
                 "vwap": a.vwap,
                 "timestamp": a.timestamp,
                 "transactions": a.transactions,
+                "bar_range": round((a.high / a.low) - 1, 4) * 100,
             }
             for a in aggs
         ]
