@@ -2,6 +2,8 @@ import { json } from "d3";
 
 function parseData(parse) {
   return function (d) {
+    console.log(d);
+
     d.date = parse(d.timestamp);
     d.timestamp = +d.timestamp;
     d.open = +d.open;
@@ -9,7 +11,8 @@ function parseData(parse) {
     d.low = +d.low;
     d.close = +d.close;
     d.volume = +d.volume;
-    //   console.log(d);
+    d.true_vwap = +d.true_vwap;
+    d.vwap = +d.vwap;
     return d;
   };
 }
@@ -18,7 +21,9 @@ export function getData(chartParams) {
   var promiseOHLC = json(
     `/api/chart?ticker=${encodeURI(chartParams.ticker)}&from=${encodeURI(
       chartParams.from
-    )}&to=${encodeURI(chartParams.to)}&res=${encodeURI(chartParams.res)}`
+    )}&to=${encodeURI(chartParams.to)}&res=${encodeURI(
+      chartParams.res
+    )}&ah=${encodeURI(chartParams.ah)}`
   ).then((data) => {
     return data.chart.map(parseData((d) => new Date(+d)));
   });

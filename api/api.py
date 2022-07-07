@@ -23,11 +23,14 @@ def get_ct():
     to = request.args.get("to")
     from_ = request.args.get("from")
     res = RESOLUTIONS[request.args.get("res")]
+    ext_hours = request.args.get("ah")
+    ext_hours = True if ext_hours == "true" else False
 
     print("REQUESTED:", ticker, to, from_, res)
-
+    api_response = get_bars(poly_client, ticker, res[0], res[1], from_, to, ext_hours)
     return {
-        "chart": get_bars(poly_client, ticker, res[0], res[1], from_, to),
+        "response_status": api_response[1],
+        "chart": api_response[0],
         # "chart": get_bars(
         #     poly_client, "AAPL", 60, "minute", "2022-04-04", "2022-04-04"
         # ),

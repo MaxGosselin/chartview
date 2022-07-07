@@ -10,7 +10,9 @@ import {
   AreaSeries,
   CandlestickSeries,
   LineSeries,
+  OHLCSeries,
 } from "react-stockcharts/lib/series";
+// import OHLCSeriesMod from "./moddedOHLC";
 import { XAxis, YAxis } from "react-stockcharts/lib/axes";
 import {
   CrossHairCursor,
@@ -90,6 +92,12 @@ class CandleStickChartWithMA extends React.Component {
       .stroke("#4682B4")
       .fill("#4682B4");
 
+    const tvwap = sma()
+      .options({ windowSize: 1, sourcePath: "true_vwap" })
+      .merge((d, c) => {
+        d.tvwap = c;
+      })
+      .accessor((d) => d.tvwap);
     const vwap = sma()
       .options({ windowSize: 1, sourcePath: "vwap" })
       .merge((d, c) => {
@@ -125,7 +133,9 @@ class CandleStickChartWithMA extends React.Component {
     const calculatedData = ema20(
       sma10(
         sma20(
-          sma100(sma200(ema50(smaVolume50(vwap(bpct(atr14(initialData)))))))
+          sma100(
+            sma200(ema50(smaVolume50(tvwap(vwap(bpct(atr14(initialData)))))))
+          )
         )
       )
     );
@@ -163,6 +173,7 @@ class CandleStickChartWithMA extends React.Component {
             sma200.accessor(),
             ema20.accessor(),
             ema50.accessor(),
+            tvwap.accessor(),
             vwap.accessor(),
             // bpct.accessor(),
           ]}
@@ -182,10 +193,10 @@ class CandleStickChartWithMA extends React.Component {
             displayFormat={format(".2f")}
           />
 
-          <CandlestickSeries
-            stroke={(d) => (d.close > d.open ? "#d40201" : "#2cc900")}
-            fill={(d) => (d.close > d.open ? "#d40201" : "#2cc900")}
-            wickStroke={(d) => (d.close > d.open ? "#d40201" : "#2cc900")}
+          <OHLCSeries
+            stroke={(d) => (d.close < d.open ? "#d40201" : "#2cc900")}
+            fill={(d) => (d.close < d.open ? "#d40201" : "#2cc900")}
+            // wickStroke={(d) => (d.close < d.open ? "#d40201" : "#2cc900")}
           />
           <LineSeries yAccessor={sma10.accessor()} stroke={sma10.stroke()} />
           <LineSeries yAccessor={sma20.accessor()} stroke={sma20.stroke()} />
@@ -193,6 +204,7 @@ class CandleStickChartWithMA extends React.Component {
           <LineSeries yAccessor={sma200.accessor()} stroke={sma200.stroke()} />
           {/* <LineSeries yAccessor={ema20.accessor()} stroke={ema20.stroke()} />
           <LineSeries yAccessor={ema50.accessor()} stroke={ema50.stroke()} /> */}
+          <LineSeries yAccessor={tvwap.accessor()} stroke={tvwap.stroke()} />
           <LineSeries yAccessor={vwap.accessor()} stroke={vwap.stroke()} />
           <CurrentCoordinate
             yAccessor={sma10.accessor()}
@@ -218,6 +230,12 @@ class CandleStickChartWithMA extends React.Component {
             yAccessor={ema50.accessor()}
             fill={ema50.stroke()}
           /> */}
+
+          <CurrentCoordinate yAccessor={bpct.accessor()} fill={bpct.stroke()} />
+          <CurrentCoordinate
+            yAccessor={tvwap.accessor()}
+            fill={tvwap.stroke()}
+          />
           <CurrentCoordinate yAccessor={vwap.accessor()} fill={vwap.stroke()} />
           <OHLCTooltip
             origin={[-40, 0]}
@@ -275,8 +293,15 @@ class CandleStickChartWithMA extends React.Component {
               //   echo: "some echo here",
               // },
               {
+                yAccessor: tvwap.accessor(),
+                type: "CVWAP",
+                stroke: tvwap.stroke(),
+                windowSize: tvwap.options().windowSize,
+                echo: "some echo here",
+              },
+              {
                 yAccessor: vwap.accessor(),
-                type: "VWAP",
+                type: "BVWAP",
                 stroke: vwap.stroke(),
                 windowSize: vwap.options().windowSize,
                 echo: "some echo here",

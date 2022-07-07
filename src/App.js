@@ -10,6 +10,7 @@ function App() {
     from: "2020-01-01",
     to: "2020-01-02",
     res: "5m",
+    ah: false,
   });
 
   const chartRequestHandler = (chartRequest) => {

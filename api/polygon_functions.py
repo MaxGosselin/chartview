@@ -1,12 +1,10 @@
 from concurrent.futures import process
-import pandas
+import pandas as pd
+import numpy as np
 from datetime import datetime
 from typing import cast
 from urllib3 import HTTPResponse
 import json
-
-# import requests
-import pandas
 
 # from binance import Client
 
@@ -52,17 +50,17 @@ import pandas
 #         for el in data
 #     ]
 
-#     data_df = pandas.DataFrame(
+#     data_df = pd.DataFrame(
 #         cleaned_data, columns=["datetime", "open", "high", "low", "close"]
 #     )
 #     # data["datetime"] = data["datetime"] // 1000
 #     data_df = data_df.set_index("datetime")
-#     data_df.index = pandas.to_datetime(data_df.index)
+#     data_df.index = pd.to_datetime(data_df.index)
 
 #     return data_df
 
 
-def get_bars(api_client, ticker, multiplier, timespan, from_, to):
+def get_bars(api_client, ticker, multiplier, timespan, from_, to, ext_hours=False):
     """API wrapper fn spec: stocks_equities_aggregates(self, ticker, multiplier, timespan, from_, to,
     **query_params)"""
 
@@ -78,39 +76,79 @@ def get_bars(api_client, ticker, multiplier, timespan, from_, to):
         to,
         adjusted=True,
         limit=500000,
+        raw=True,
     )
-    # print(aggs)
-    if len(aggs) > 0:
-        processed = [
-            {
-                "open": a.open,
-                "high": a.high,
-                "low": a.low,
-                "close": a.close,
-                "volume": a.volume,
-                "vwap": a.vwap,
-                "timestamp": a.timestamp,
-                "transactions": a.transactions,
-                "bar_range": round((a.high / a.low) - 1, 4) * 100,
-            }
-            for a in aggs
-        ]
+
+    if aggs.status < 400:
+        # processed = [
+        #     {
+        #         "open": a.open,
+        #         "high": a.high,
+        #         "low": a.low,
+        #         "close": a.close,
+        #         "volume": a.volume,
+        #         "vwap": a.vwap,
+        #         "timestamp": a.timestamp,
+        #         "transactions": a.transactions,
+        # "bar_range": round(, 4) * 100,
+        #     }
+        #     for a in aggs
+        # ]
+
+        aggs_df = adjust_timeframe(aggs, ext_hours)
         # print(processed[:5], type(processed[0]))
-        return processed
+        aggs_df = calculate_stuff(aggs_df)
+        # print(aggs_df)
+        return aggs_df.to_dict("records"), aggs.status
     else:
         # TODO: Handle errs cogently
         print(f"Error with ticker {ticker}")
         print(aggs.status, dir(aggs))
+        return aggs.message, aggs.status
 
 
-def __raw_to_df(rawdata: list):
+def calculate_stuff(df):
+    def weighted_vwap(grp):
+        def compute_from_window(wdow):
+            wv = df.loc[wdow.index]
+            # print(wv[["vwap", "volume"]])
+            avg = np.average(wv["vwap"], weights=wv["volume"])
+            print(avg)
+            return avg
+
+        grp["true_vwap"] = (
+            grp["vwap"]
+            .rolling(window=len(df), min_periods=1)
+            .apply(compute_from_window)
+        )
+
+        print(type(grp), grp)
+        return grp
+
+        # pd.Series()
+        #  g.apply(lambda x: pd.Series(np.average(x[["var1", "var2"]], weights=x["weights"], axis=0), ["var1", "var2"]))
+
+    # print(df.groupby(df.index.date))
+    df["true_vwap"] = df.groupby(df.index.floor("d"))[["vwap", "volume"]].apply(
+        weighted_vwap
+    )["true_vwap"]
+    # print(x["true_vwap"])
+    #  = x
+    df["bar_range"] = ((df.high / df.low) - 1) * 100
+    print(df.head(10))
+
+    return df
+
+
+def adjust_timeframe(rawdata: list, ext_hours):
     """Convert API data to pd DataFrame and set index on timestamp."""
 
-    df = pandas.DataFrame.from_dict(rawdata)
-    df = df.drop(
-        ["vw", "n"],
-        axis=1,
-    )
+    df = pd.DataFrame(json.loads(rawdata.data.decode("utf-8"))["results"])
+    # df = df.drop(
+    #     ["vw", "n"],
+    #     axis=1,
+    # )
+    df["timeindex"] = df["t"]
 
     df = df.rename(
         columns={
@@ -120,22 +158,26 @@ def __raw_to_df(rawdata: list):
             "c": "close",
             "t": "timestamp",
             "v": "volume",
+            "vw": "vwap",
+            "n": "trades",
         }
     )
 
-    df = df.set_index("timestamp")
+    df = df.set_index("timeindex")
     df.index = (
-        pandas.to_datetime(df.index, unit="ms", origin="unix")
+        pd.to_datetime(df.index, unit="ms", origin="unix")
         .tz_localize("UTC")
         .tz_convert("US/Eastern")
     )
 
     # Market hours only
     open_time, close_time = (
-        pandas.to_datetime("9:30:00").time(),
-        pandas.to_datetime("16:00:00").time(),
+        pd.to_datetime("9:30:00").time(),
+        pd.to_datetime("16:00:00").time(),
     )
-    market_hours_mask = (df.index.time >= open_time) & (df.index.time < close_time)
-    df = df[market_hours_mask]
-    # print(df)
+
+    if not ext_hours:
+        market_hours_mask = (df.index.time >= open_time) & (df.index.time < close_time)
+        df = df[market_hours_mask]
+
     return df

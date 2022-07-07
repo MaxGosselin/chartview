@@ -15,6 +15,7 @@ const ChartForm = (props) => {
     from: "2020-01-01",
     to: "2020-01-02",
     res: "5m",
+    ah: false,
   });
 
   const tickerChangeHandler = (event) => {
@@ -35,6 +36,11 @@ const ChartForm = (props) => {
   const resChangeHandler = (event) => {
     setFormInput((prevState) => {
       return { ...prevState, res: event.target.value };
+    });
+  };
+  const ahChangeHandler = (event) => {
+    setFormInput((prevState) => {
+      return { ...prevState, ah: !prevState.ah };
     });
   };
   return (
@@ -84,6 +90,10 @@ const ChartForm = (props) => {
                 <option value="1d">1d</option>
               </select>
             </label>
+          </div>
+          <div className="cf__control">
+            <label className="cf__label">Extended hours</label>
+            <input type="checkbox" onChange={ahChangeHandler} />
           </div>
           <input className="cf__control cf__submit" type="submit" value="Go" />
         </div>
