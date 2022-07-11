@@ -11,7 +11,7 @@ function App() {
     to: "2020-01-02",
     res: "5m",
     ah: false,
-    indicators: false,
+    indicators: true,
     vwap_show: 1,
   });
 

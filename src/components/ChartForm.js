@@ -16,7 +16,7 @@ const ChartForm = (props) => {
     to: "2020-01-02",
     res: "5m",
     ah: false,
-    indicators: false,
+    indicators: true,
     vwap_show: 1,
   });
 
@@ -109,8 +109,19 @@ const ChartForm = (props) => {
             <input type="checkbox" onChange={ahChangeHandler} />
           </div>
           <div className="cf__control">
-            <label className="cf__label">SMA / EMA</label>
-            <input type="checkbox" onChange={indicatorsChangeHandler} />
+            <label className="cf__label">SMA</label>
+            <input
+              type="radio"
+              name="indicators"
+              onChange={indicatorsChangeHandler}
+              checked
+            />
+            <label className="cf__label">EMA</label>
+            <input
+              type="radio"
+              name="indicators"
+              onChange={indicatorsChangeHandler}
+            />
           </div>
           <input className="cf__control cf__submit" type="submit" value="Go" />
         </div>
