@@ -17,6 +17,7 @@ const ChartForm = (props) => {
     res: "5m",
     ah: false,
     indicators: false,
+    vwap_show: 1,
   });
 
   const tickerChangeHandler = (event) => {
@@ -36,7 +37,11 @@ const ChartForm = (props) => {
   };
   const resChangeHandler = (event) => {
     setFormInput((prevState) => {
-      return { ...prevState, res: event.target.value };
+      return {
+        ...prevState,
+        res: event.target.value,
+        vwap_show: ["1d", "1w", "1m"].includes(event.target.value) ? 0 : 1,
+      };
     });
   };
   const ahChangeHandler = (event) => {

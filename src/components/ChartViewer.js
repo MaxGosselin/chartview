@@ -66,6 +66,7 @@ class ChartViewer extends React.Component {
           ticker={this.props.chartParams.ticker}
           chart_height={this.state.height}
           indicators={this.props.chartParams.indicators}
+          vwap_show={this.props.chartParams.vwap_show}
         />
       </div>
     );

@@ -7,8 +7,6 @@ import { timeFormat } from "d3-time-format";
 import { ChartCanvas, Chart } from "react-stockcharts";
 import {
   BarSeries,
-  AreaSeries,
-  CandlestickSeries,
   LineSeries,
   OHLCSeries,
 } from "react-stockcharts/lib/series";
@@ -40,6 +38,7 @@ class CandleStickChartWithMA extends React.Component {
       ticker,
       chart_height,
       indicators,
+      vwap_show,
     } = this.props;
 
     const ema10 = sma()
@@ -120,14 +119,15 @@ class CandleStickChartWithMA extends React.Component {
       .merge((d, c) => {
         d.tvwap = c;
       })
-      .accessor((d) => d.tvwap);
-    const vwap = sma()
-      .options({ windowSize: 1, sourcePath: "vwap" })
-      .merge((d, c) => {
-        d.vwap = c;
-      })
-      .accessor((d) => d.vwap)
+      .accessor((d) => d.tvwap)
       .stroke("orange");
+    // const vwap = sma()
+    //   .options({ windowSize: 1, sourcePath: "vwap" })
+    //   .merge((d, c) => {
+    //     d.vwap = c;
+    //   })
+    //   .accessor((d) => d.vwap)
+    //   .stroke("orange");
 
     const bpct = sma()
       .options({ windowSize: 1, sourcePath: "bar_range" })
@@ -156,7 +156,7 @@ class CandleStickChartWithMA extends React.Component {
 
     if (!indicators) {
       const calculatedData = ema10(
-        ema20(ema65(smaVolume50(tvwap(vwap(bpct(atr14(initialData)))))))
+        ema20(ema65(smaVolume50(tvwap(bpct(atr14(initialData))))))
       );
 
       const xScaleProvider = discontinuousTimeScaleProvider.inputDateAccessor(
@@ -216,8 +216,12 @@ class CandleStickChartWithMA extends React.Component {
             <LineSeries yAccessor={ema10.accessor()} stroke={ema10.stroke()} />
             <LineSeries yAccessor={ema20.accessor()} stroke={ema20.stroke()} />
             <LineSeries yAccessor={ema65.accessor()} stroke={ema65.stroke()} />
-            <LineSeries yAccessor={tvwap.accessor()} stroke={tvwap.stroke()} />
-            <LineSeries yAccessor={vwap.accessor()} stroke={vwap.stroke()} />
+            <LineSeries
+              yAccessor={tvwap.accessor()}
+              stroke={tvwap.stroke()}
+              strokeOpacity={vwap_show}
+            />
+            {/* <LineSeries yAccessor={vwap.accessor()} stroke={vwap.stroke()} /> */}
             <CurrentCoordinate
               yAccessor={ema10.accessor()}
               fill={ema10.stroke()}
@@ -238,10 +242,10 @@ class CandleStickChartWithMA extends React.Component {
               yAccessor={tvwap.accessor()}
               fill={tvwap.stroke()}
             />
-            <CurrentCoordinate
+            {/* <CurrentCoordinate
               yAccessor={vwap.accessor()}
               fill={vwap.stroke()}
-            />
+            /> */}
             <OHLCTooltip
               origin={[-40, 0]}
               textFill={"#ffffff"}
@@ -278,18 +282,18 @@ class CandleStickChartWithMA extends React.Component {
 
                 {
                   yAccessor: tvwap.accessor(),
-                  type: "CVWAP",
+                  type: "VWAP",
                   stroke: tvwap.stroke(),
                   windowSize: tvwap.options().windowSize,
                   echo: "some echo here",
                 },
-                {
-                  yAccessor: vwap.accessor(),
-                  type: "BVWAP",
-                  stroke: vwap.stroke(),
-                  windowSize: vwap.options().windowSize,
-                  echo: "some echo here",
-                },
+                // {
+                //   yAccessor: vwap.accessor(),
+                //   type: "BVWAP",
+                //   stroke: vwap.stroke(),
+                //   windowSize: vwap.options().windowSize,
+                //   echo: "some echo here",
+                // },
                 {
                   yAccessor: atr14.accessor(),
                   type: "ATR",
@@ -323,7 +327,7 @@ class CandleStickChartWithMA extends React.Component {
             <MouseCoordinateX
               at="bottom"
               orient="bottom"
-              displayFormat={timeFormat("%Y-%m-%d")}
+              displayFormat={timeFormat("%m-%d %H:%M")}
             />
             <MouseCoordinateY
               at="left"
@@ -336,10 +340,9 @@ class CandleStickChartWithMA extends React.Component {
               stroke={(d) => (d.close > d.open ? "#d40201" : "#2cc900")}
               fill={(d) => (d.close > d.open ? "#d40201" : "#2cc900")}
             />
-            <AreaSeries
+            <LineSeries
               yAccessor={smaVolume50.accessor()}
               stroke={smaVolume50.stroke()}
-              fill={smaVolume50.fill()}
             />
             <CurrentCoordinate
               yAccessor={smaVolume50.accessor()}
@@ -352,9 +355,7 @@ class CandleStickChartWithMA extends React.Component {
       );
     } else {
       const calculatedData = sma10(
-        sma20(
-          sma100(sma200(smaVolume50(tvwap(vwap(bpct(atr14(initialData)))))))
-        )
+        sma20(sma100(sma200(smaVolume50(tvwap(bpct(atr14(initialData)))))))
       );
 
       const xScaleProvider = discontinuousTimeScaleProvider.inputDateAccessor(
@@ -422,8 +423,12 @@ class CandleStickChartWithMA extends React.Component {
               yAccessor={sma200.accessor()}
               stroke={sma200.stroke()}
             />
-            <LineSeries yAccessor={tvwap.accessor()} stroke={tvwap.stroke()} />
-            <LineSeries yAccessor={vwap.accessor()} stroke={vwap.stroke()} />
+            <LineSeries
+              yAccessor={tvwap.accessor()}
+              stroke={tvwap.stroke()}
+              strokeOpacity={vwap_show}
+            />
+            {/* <LineSeries yAccessor={vwap.accessor()} stroke={vwap.stroke()} /> */}
             <CurrentCoordinate
               yAccessor={sma10.accessor()}
               fill={sma10.stroke()}
@@ -448,10 +453,10 @@ class CandleStickChartWithMA extends React.Component {
               yAccessor={tvwap.accessor()}
               fill={tvwap.stroke()}
             />
-            <CurrentCoordinate
+            {/* <CurrentCoordinate
               yAccessor={vwap.accessor()}
               fill={vwap.stroke()}
-            />
+            /> */}
             <OHLCTooltip
               origin={[-40, 0]}
               textFill={"#ffffff"}
@@ -494,18 +499,18 @@ class CandleStickChartWithMA extends React.Component {
                 },
                 {
                   yAccessor: tvwap.accessor(),
-                  type: "CVWAP",
+                  type: "VWAP",
                   stroke: tvwap.stroke(),
                   windowSize: tvwap.options().windowSize,
                   echo: "some echo here",
                 },
-                {
-                  yAccessor: vwap.accessor(),
-                  type: "BVWAP",
-                  stroke: vwap.stroke(),
-                  windowSize: vwap.options().windowSize,
-                  echo: "some echo here",
-                },
+                // {
+                //   yAccessor: vwap.accessor(),
+                //   type: "BVWAP",
+                //   stroke: vwap.stroke(),
+                //   windowSize: vwap.options().windowSize,
+                //   echo: "some echo here",
+                // },
                 {
                   yAccessor: atr14.accessor(),
                   type: "ATR",
@@ -539,7 +544,7 @@ class CandleStickChartWithMA extends React.Component {
             <MouseCoordinateX
               at="bottom"
               orient="bottom"
-              displayFormat={timeFormat("%Y-%m-%d")}
+              displayFormat={timeFormat("%m-%d %H:%M")}
             />
             <MouseCoordinateY
               at="left"
@@ -552,10 +557,9 @@ class CandleStickChartWithMA extends React.Component {
               stroke={(d) => (d.close > d.open ? "#d40201" : "#2cc900")}
               fill={(d) => (d.close > d.open ? "#d40201" : "#2cc900")}
             />
-            <AreaSeries
+            <LineSeries
               yAccessor={smaVolume50.accessor()}
               stroke={smaVolume50.stroke()}
-              fill={smaVolume50.fill()}
             />
             <CurrentCoordinate
               yAccessor={smaVolume50.accessor()}
