@@ -59,7 +59,7 @@ class CandleStickChartWithMA extends React.Component {
         d.ema20 = c;
       }) // Required, if not provided, log a error
       .accessor((d) => d.ema20) // Required, if not provided, log an error during calculation
-      .stroke("blue"); // Optional
+      .stroke("yellow"); // Optional
 
     const ema65 = ema()
       .options({
@@ -71,7 +71,7 @@ class CandleStickChartWithMA extends React.Component {
         d.ema65 = c;
       }) // Required, if not provided, log a error
       .accessor((d) => d.ema65) // Required, if not provided, log an error during calculation
-      .stroke("#0154d4"); // Optional
+      .stroke("blue"); // Optional
 
     const sma10 = sma()
       .options({ windowSize: 10 })
