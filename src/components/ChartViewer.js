@@ -12,18 +12,20 @@ class ChartViewer extends React.Component {
   };
   componentDidMount() {
     getData(this.props.chartParams).then((data) => {
+      console.log(data);
       this.setState({ data });
     });
     const height = this.divElement.clientHeight - 50;
     this.setState({ height });
+    console.log("PROPS", this.props);
   }
   componentDidUpdate() {
     if (this.state.prevPropsParams !== this.props.chartParams) {
-      // console.log("STATE", this.state);
-      // console.log("PROPS", this.props);
+      console.log("STATE", this.state);
+      console.log("PROPS", this.props);
       const height = this.divElement.clientHeight;
       getData(this.props.chartParams).then((ohlc) => {
-        console.log(ohlc);
+        // console.log(ohlc);
         this.setState({
           data: ohlc,
           prevPropsParams: this.props.chartParams,
@@ -63,6 +65,7 @@ class ChartViewer extends React.Component {
           ratio={2}
           ticker={this.props.chartParams.ticker}
           chart_height={this.state.height}
+          indicators={this.props.chartParams.indicators}
         />
       </div>
     );

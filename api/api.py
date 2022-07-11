@@ -14,6 +14,8 @@ RESOLUTIONS = {
     "30m": (30, "minute"),
     "1h": (60, "minute"),
     "1d": (1, "day"),
+    "1w": (1, "week"),
+    "1m": (1, "month"),
 }
 
 
@@ -26,8 +28,9 @@ def get_ct():
     ext_hours = request.args.get("ah")
     ext_hours = True if ext_hours == "true" else False
 
-    print("REQUESTED:", ticker, to, from_, res)
+    print("REQUESTED:", ticker, from_, to, res)
     api_response = get_bars(poly_client, ticker, res[0], res[1], from_, to, ext_hours)
+
     return {
         "response_status": api_response[1],
         "chart": api_response[0],

@@ -11,6 +11,7 @@ function App() {
     to: "2020-01-02",
     res: "5m",
     ah: false,
+    indicators: true,
   });
 
   const chartRequestHandler = (chartRequest) => {

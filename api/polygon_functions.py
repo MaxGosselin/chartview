@@ -1,7 +1,7 @@
 from concurrent.futures import process
 import pandas as pd
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import cast
 from urllib3 import HTTPResponse
 import json
@@ -67,8 +67,8 @@ def get_bars(api_client, ticker, multiplier, timespan, from_, to, ext_hours=Fals
     # RESTClient can be used as a context manager to facilitate closing the underlying http session
     # https://requests.readthedocs.io/en/master/user/advanced/#session-objects
     # RESTClient.stocks_equities_aggregates
-
-    aggs = api_client.get_aggs(
+    interday = True if timespan != "minute" else False
+    target_aggs = api_client.get_aggs(
         ticker,
         multiplier,
         timespan,
@@ -78,8 +78,22 @@ def get_bars(api_client, ticker, multiplier, timespan, from_, to, ext_hours=Fals
         limit=500000,
         raw=True,
     )
+    daily_start = (datetime.strptime(from_, "%Y-%m-%d") - timedelta(days=201)).strftime(
+        "%Y-%m-%d"
+    )
+    timestr = str(multiplier) + " " + timespan
+    daily_aggs = api_client.get_aggs(
+        ticker,
+        1,
+        "day",
+        daily_start,
+        to,
+        adjusted=True,
+        limit=500000,
+        raw=True,
+    )
 
-    if aggs.status < 400:
+    if target_aggs.status < 400:
         # processed = [
         #     {
         #         "open": a.open,
@@ -94,53 +108,96 @@ def get_bars(api_client, ticker, multiplier, timespan, from_, to, ext_hours=Fals
         #     }
         #     for a in aggs
         # ]
-
-        aggs_df = adjust_timeframe(aggs, ext_hours)
+        aggs_df = adjust_timeframe(target_aggs, ext_hours, interday)
+        daily_df = adjust_timeframe(daily_aggs, ext_hours, True)
         # print(processed[:5], type(processed[0]))
-        aggs_df = calculate_stuff(aggs_df)
+
+        aggs_df = calculate_stuff(aggs_df, daily_df, timestr)
         # print(aggs_df)
-        return aggs_df.to_dict("records"), aggs.status
+        return aggs_df.to_dict("records"), target_aggs.status
     else:
         # TODO: Handle errs cogently
         print(f"Error with ticker {ticker}")
-        print(aggs.status, dir(aggs))
-        return aggs.message, aggs.status
+        print(target_aggs.status, dir(target_aggs))
+        return target_aggs.message, target_aggs.status
 
 
-def calculate_stuff(df):
+def calculate_stuff(df, daily, timestr):
     def weighted_vwap(grp):
         def compute_from_window(wdow):
             wv = df.loc[wdow.index]
             # print(wv[["vwap", "volume"]])
             avg = np.average(wv["vwap"], weights=wv["volume"])
-            print(avg)
+            # print(avg)
             return avg
 
-        grp["true_vwap"] = (
-            grp["vwap"]
-            .rolling(window=len(df), min_periods=1)
-            .apply(compute_from_window)
-        )
-
-        print(type(grp), grp)
+        if len(df):
+            grp["true_vwap"] = (
+                grp["vwap"]
+                .rolling(window=len(df), min_periods=1)
+                .apply(compute_from_window)
+            )
+        # print(df)
+        # print(type(grp), grp)
         return grp
 
-        # pd.Series()
-        #  g.apply(lambda x: pd.Series(np.average(x[["var1", "var2"]], weights=x["weights"], axis=0), ["var1", "var2"]))
+    def resample_daily_close(df, daily, timestr):
 
-    # print(df.groupby(df.index.date))
+        daily["ma10"] = daily["close"].rolling(10, min_periods=1).mean()
+        daily["ma20"] = daily["close"].rolling(20, min_periods=1).mean()
+        daily["ma100"] = daily["close"].rolling(100, min_periods=1).mean()
+        daily["ma200"] = daily["close"].rolling(200, min_periods=1).mean()
+        daily["ema10"] = (
+            daily["close"]
+            .ewm(span=10, min_periods=0, adjust=False, ignore_na=False)
+            .mean()
+        )
+        daily["ema20"] = (
+            daily["close"]
+            .ewm(span=20, min_periods=0, adjust=False, ignore_na=False)
+            .mean()
+        )
+        daily["ema65"] = (
+            daily["close"]
+            .ewm(span=65, min_periods=0, adjust=False, ignore_na=False)
+            .mean()
+        )
+        print(daily.loc[:, "ma10":"ema65"])
+        codec = {"minute": "T", "day": "D", "week": "W", "month": "M"}
+        timestr = timestr.split()
+        timestr = timestr[0] + codec[timestr[1]]
+
+        df["ma10"] = daily["ma10"].resample(timestr).interpolate(method="linear")
+        df["ma10"] = df["ma10"].ffill()
+        df["ma20"] = daily["ma20"].resample(timestr).interpolate(method="linear")
+        df["ma20"] = df["ma20"].ffill()
+        df["ma100"] = daily["ma100"].resample(timestr).interpolate(method="linear")
+        df["ma100"] = df["ma100"].ffill()
+        df["ma200"] = daily["ma200"].resample(timestr).interpolate(method="linear")
+        df["ma200"] = df["ma200"].ffill()
+        df["ema10"] = daily["ema10"].resample(timestr).interpolate(method="linear")
+        df["ema10"] = df["ema10"].ffill()
+        df["ema20"] = daily["ema20"].resample(timestr).interpolate(method="linear")
+        df["ema20"] = df["ema20"].ffill()
+        df["ema65"] = daily["ema65"].resample(timestr).interpolate(method="linear")
+        df["ema65"] = df["ema65"].ffill()
+
+        return df
+
     df["true_vwap"] = df.groupby(df.index.floor("d"))[["vwap", "volume"]].apply(
         weighted_vwap
     )["true_vwap"]
     # print(x["true_vwap"])
     #  = x
     df["bar_range"] = ((df.high / df.low) - 1) * 100
-    print(df.head(10))
+    # print(df.head(10))
 
+    # df = resample_daily_close(df, daily, timestr)
+    # print(df.loc[:, "ma10":"ema65"])
     return df
 
 
-def adjust_timeframe(rawdata: list, ext_hours):
+def adjust_timeframe(rawdata: list, ext_hours, interday):
     """Convert API data to pd DataFrame and set index on timestamp."""
 
     df = pd.DataFrame(json.loads(rawdata.data.decode("utf-8"))["results"])
@@ -176,7 +233,7 @@ def adjust_timeframe(rawdata: list, ext_hours):
         pd.to_datetime("16:00:00").time(),
     )
 
-    if not ext_hours:
+    if not ext_hours and not interday:
         market_hours_mask = (df.index.time >= open_time) & (df.index.time < close_time)
         df = df[market_hours_mask]
 
