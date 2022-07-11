@@ -13,7 +13,7 @@ function parseData(parse) {
     d.volume = +d.volume;
     d.true_vwap = +d.true_vwap;
     d.vwap = +d.vwap;
-    d.ma10 = +d.ma10;
+
     return d;
   };
 }

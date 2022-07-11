@@ -75,7 +75,7 @@ class CandleStickChartWithMA extends React.Component {
       .stroke("blue"); // Optional
 
     const sma10 = sma()
-      .options({ windowSize: 1, sourcePath: "ma10" })
+      .options({ windowSize: 10 })
       .merge((d, c) => {
         d.sma10 = c;
       })
