@@ -109,10 +109,10 @@ def get_bars(api_client, ticker, multiplier, timespan, from_, to, ext_hours=Fals
         #     for a in aggs
         # ]
         aggs_df = adjust_timeframe(target_aggs, ext_hours, interday)
-        daily_df = adjust_timeframe(daily_aggs, ext_hours, True)
+        data_df = adjust_timeframe(daily_aggs, ext_hours, True)
         # print(processed[:5], type(processed[0]))
 
-        aggs_df = calculate_stuff(aggs_df, daily_df, timestr)
+        aggs_df = calculate_stuff(aggs_df, data_df, timestr)
         # print(aggs_df)
         return aggs_df.to_dict("records"), target_aggs.status
     else:
@@ -192,8 +192,10 @@ def calculate_stuff(df, daily, timestr):
     df["bar_range"] = ((df.high / df.low) - 1) * 100
     # print(df.head(10))
 
+    df["adr"], df["atr"] = get_ATR_ADR(df)
     # df = resample_daily_close(df, daily, timestr)
     # print(df.loc[:, "ma10":"ema65"])
+    print(df.head(10))
     return df
 
 
@@ -238,3 +240,32 @@ def adjust_timeframe(rawdata: list, ext_hours, interday):
         df = df[market_hours_mask]
 
     return df
+
+
+def get_ATR_ADR(data_df):
+    """ADR and ATR computation"""
+
+    range_df = data_df
+    # print(range_df)
+    high_low = range_df["high"] - range_df["low"]  # / range_df["close"]
+    high_low_adr = range_df["high"] / range_df["low"]
+
+    adr = (high_low_adr.rolling(20).sum() / 20) - 1
+
+    high_close = np.abs(
+        range_df["high"] - range_df["close"].shift()
+    )  # / range_df["close"]
+    low_close = np.abs(
+        range_df["low"] - range_df["close"].shift()
+    )  # / range_df["close"]
+
+    ranges = pd.concat([high_low, high_close, low_close], axis=1)
+
+    true_range = np.max(ranges, axis=1)
+    atr = true_range.rolling(14).sum() / 14
+    # atr_3 = true_range.rolling(3).sum() / 3
+    # atr_20 = true_range.rolling(20).sum() / 20
+    # atr_3_20 = atr_3[-1] / atr_20[-1]
+    adr, atr = adr.fillna(0), atr.fillna(0)
+    print(adr, atr)
+    return adr, atr

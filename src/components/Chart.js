@@ -143,6 +143,13 @@ class CandleStickChartWithMA extends React.Component {
       })
       .accessor((d) => d.atr14);
 
+    const adr = sma()
+      .options({ windowSize: 1, sourcePath: "adr" })
+      .merge((d, c) => {
+        d.bpct = c;
+      })
+      .accessor((d) => d.bpct);
+
     console.log(this.props);
     // const {
     //   type,
@@ -299,6 +306,13 @@ class CandleStickChartWithMA extends React.Component {
                   type: "ATR",
                   stroke: atr14.stroke(),
                   windowSize: atr14.options().windowSize,
+                  echo: "some echo here",
+                },
+                {
+                  yAccessor: adr.accessor(),
+                  type: "ADR",
+                  stroke: adr.stroke(),
+                  windowSize: 20,
                   echo: "some echo here",
                 },
                 {
@@ -516,6 +530,13 @@ class CandleStickChartWithMA extends React.Component {
                   type: "ATR",
                   stroke: atr14.stroke(),
                   windowSize: atr14.options().windowSize,
+                  echo: "some echo here",
+                },
+                {
+                  yAccessor: adr.accessor(),
+                  type: "ADR",
+                  stroke: adr.stroke(),
+                  windowSize: 20,
                   echo: "some echo here",
                 },
                 {
