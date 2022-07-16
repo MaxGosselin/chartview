@@ -20,7 +20,7 @@ function App() {
     //   ...chartRequest
     // }
     setChartParams(chartRequest);
-    console.log("APP", chartRequest);
+    // console.log("APP", chartRequest);
   };
 
   return (

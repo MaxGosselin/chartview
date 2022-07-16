@@ -150,7 +150,7 @@ class CandleStickChartWithMA extends React.Component {
       })
       .accessor((d) => d.bpct);
 
-    console.log(this.props);
+    // console.log(this.props);
     // const {
     //   type,
     //   data: initialData,
