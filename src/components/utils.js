@@ -1,7 +1,6 @@
 import { json } from "d3";
 
 function convertTZ(date, tzString) {
-
   const dd = new Date(
     (typeof date === "string" ? new Date(date) : date).toLocaleString("en-US", {
       timeZone: tzString,
@@ -13,8 +12,6 @@ function convertTZ(date, tzString) {
 
 function parseData(parse) {
   return function (d) {
-
-
     d.date = convertTZ(parse(d.timestamp), "America/New_York");
     d.timestamp = +d.timestamp;
     d.open = +d.open;
@@ -37,6 +34,7 @@ export function getData(chartParams) {
       chartParams.res
     )}&ah=${encodeURI(chartParams.ah)}`
   ).then((data) => {
+    console.log(data);
     return data.chart.map(parseData((d) => new Date(+d)));
   });
   return promiseOHLC;

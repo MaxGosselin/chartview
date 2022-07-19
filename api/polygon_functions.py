@@ -203,10 +203,14 @@ def adjust_timeframe(rawdata: list, ext_hours, interday):
     """Convert API data to pd DataFrame and set index on timestamp."""
 
     df = pd.DataFrame(json.loads(rawdata.data.decode("utf-8"))["results"])
-    # df = df.drop(
-    #     ["vw", "n"],
-    #     axis=1,
-    # )
+    try:
+        df = df.drop(
+            ["a", "op"],
+            axis=1,
+        )
+    except:
+        print(f"Tried dropping 'a', 'op', but columns are: {df.columns.values}")
+
     df["timeindex"] = df["t"]
 
     df = df.rename(

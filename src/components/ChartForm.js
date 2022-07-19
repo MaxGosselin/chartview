@@ -99,8 +99,8 @@ const ChartForm = (props) => {
                 <option value="30m">30m</option>
                 <option value="1h">1h</option>
                 <option value="1d">1d</option>
-                <option value="1wk">1w</option>
-                <option value="1mo">1m</option>
+                <option value="1wk">1wk</option>
+                <option value="1mo">1mo</option>
               </select>
             </label>
           </div>

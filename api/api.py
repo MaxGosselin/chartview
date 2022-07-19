@@ -30,7 +30,7 @@ def get_ct():
 
     print("REQUESTED:", ticker, from_, to, res)
     api_response = get_bars(poly_client, ticker, res[0], res[1], from_, to, ext_hours)
-
+    print(api_response[0], api_response[1])
     return {
         "response_status": api_response[1],
         "chart": api_response[0],

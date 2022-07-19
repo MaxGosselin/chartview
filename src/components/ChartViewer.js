@@ -25,7 +25,7 @@ class ChartViewer extends React.Component {
       // console.log("PROPS", this.props);
       const height = this.divElement.clientHeight;
       getData(this.props.chartParams).then((ohlc) => {
-        // console.log(ohlc);
+        console.log(ohlc);
         this.setState({
           data: ohlc,
           prevPropsParams: this.props.chartParams,
