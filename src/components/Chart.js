@@ -40,7 +40,7 @@ class CandleStickChartWithMA extends React.Component {
       indicators,
       vwap_show,
     } = this.props;
-
+    console.log(this.props);
     const ema10 = sma()
       .options({ windowSize: 10 })
       .merge((d, c) => {

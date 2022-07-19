@@ -14,8 +14,8 @@ RESOLUTIONS = {
     "30m": (30, "minute"),
     "1h": (60, "minute"),
     "1d": (1, "day"),
-    "1w": (1, "week"),
-    "1m": (1, "month"),
+    "1wk": (1, "week"),
+    "1mo": (1, "month"),
 }
 
 
