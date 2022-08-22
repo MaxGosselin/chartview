@@ -40,7 +40,7 @@ const ChartForm = (props) => {
       return {
         ...prevState,
         res: event.target.value,
-        vwap_show: ["1d", "1w", "1m"].includes(event.target.value) ? 0 : 1,
+        vwap_show: ["1d", "1wk", "1mo"].includes(event.target.value) ? 0 : 1,
       };
     });
   };
@@ -114,7 +114,7 @@ const ChartForm = (props) => {
               type="radio"
               name="indicators"
               onChange={indicatorsChangeHandler}
-              checked
+              defaultChecked
             />
             <label className="cf__label">EMA</label>
             <input

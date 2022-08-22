@@ -351,8 +351,8 @@ class CandleStickChartWithMA extends React.Component {
 
             <BarSeries
               yAccessor={(d) => d.volume}
-              stroke={(d) => (d.close > d.open ? "#d40201" : "#2cc900")}
-              fill={(d) => (d.close > d.open ? "#d40201" : "#2cc900")}
+              stroke={(d) => (d.close < d.open ? "#d40201" : "#2cc900")}
+              fill={(d) => (d.close < d.open ? "#d40201" : "#2cc900")}
             />
             <LineSeries
               yAccessor={smaVolume50.accessor()}
@@ -575,8 +575,8 @@ class CandleStickChartWithMA extends React.Component {
 
             <BarSeries
               yAccessor={(d) => d.volume}
-              stroke={(d) => (d.close > d.open ? "#d40201" : "#2cc900")}
-              fill={(d) => (d.close > d.open ? "#d40201" : "#2cc900")}
+              stroke={(d) => (d.close < d.open ? "#d40201" : "#2cc900")}
+              fill={(d) => (d.close < d.open ? "#d40201" : "#2cc900")}
             />
             <LineSeries
               yAccessor={smaVolume50.accessor()}
