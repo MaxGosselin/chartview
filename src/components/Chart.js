@@ -358,11 +358,12 @@ class CandleStickChartWithMA extends React.Component {
               yAccessor={smaVolume50.accessor()}
               stroke={smaVolume50.stroke()}
             />
+
             <CurrentCoordinate
-              yAccessor={smaVolume50.accessor()}
-              fill={smaVolume50.stroke()}
+              yAccessor={(d) => d.volume}
+              stroke={(d) => (d.close < d.open ? "#d40201" : "#2cc900")}
+              fill={(d) => (d.close < d.open ? "#d40201" : "#2cc900")}
             />
-            <CurrentCoordinate yAccessor={(d) => d.volume} fill="#9B0A47" />
           </Chart>
           <CrossHairCursor stroke="#FFFFFF" />
         </ChartCanvas>
@@ -582,11 +583,12 @@ class CandleStickChartWithMA extends React.Component {
               yAccessor={smaVolume50.accessor()}
               stroke={smaVolume50.stroke()}
             />
+
             <CurrentCoordinate
-              yAccessor={smaVolume50.accessor()}
-              fill={smaVolume50.stroke()}
+              yAccessor={(d) => d.volume}
+              stroke={(d) => (d.close < d.open ? "#d40201" : "#2cc900")}
+              fill={(d) => (d.close < d.open ? "#d40201" : "#2cc900")}
             />
-            <CurrentCoordinate yAccessor={(d) => d.volume} fill="#9B0A47" />
           </Chart>
           <CrossHairCursor stroke="#FFFFFF" />
         </ChartCanvas>
